@@ -46,8 +46,8 @@ const model = {
 			if (ship.hits[i] !== "hit") {
 				return false;
 			}
-			return true;
 		}
+		return true;
 	},
 	generateShipLocations: function() {
 		let locations;
@@ -98,19 +98,36 @@ const model = {
 
 const controller = {
 	guesses: 0,
+	guessedPositions: [],
 	processGuess: function(guess) {
 		const location = parseGuess(guess);
 		if (location) {
 			this.guesses++;
-			const hit = model.fire(location);
-			if (hit && model.shipsSunk === model.numShips) {
-				view.displayMessage("You sank all my battleships, in " + this.guesses + " guesses.");
+			if (alreadyGuessed(guess)) {
+				view.displayMessage("You already guessed that!");
+			} else {
+				const hit = model.fire(location);
+				controller.guessedPositions.push(guess);
+				if (hit && model.shipsSunk === model.numShips) {
+					view.displayMessage("You sank all my battleships, in " + this.guesses + " guesses.");
+				}
 			}
 		}
 	}
 
 }
 
+function alreadyGuessed(guess) {
+	if (controller.guessedPositions == undefined || controller.guessedPositions.length == 0) {
+		return false;
+	}
+	for (let i = 0; i < controller.guessedPositions.length; i++) {
+		if (controller.guessedPositions[i] == guess) {
+			return true;
+		}
+	}
+	return false;
+}
 function parseGuess(guess) {
 	const alphabet = ["A", "B", "C", "D", "E", "F", "G"];
 	if (guess === null || guess.length !== 2) {
@@ -138,6 +155,7 @@ function init() {
 	const  guessInput = document.getElementById("guessInput");
 	guessInput.onkeypress = handleKeyPress;
 	model.generateShipLocations();
+	controller.guessedPositions = [];
 }
 function handleFireButton() {
 	const guessInput = document.getElementById("guessInput");
